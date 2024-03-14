@@ -1,12 +1,9 @@
 pipeline {
-    agent { docker { image 'maven:3.9.6-eclipse-temurin-17-alpine' } }
-    triggers {
-        githubPush()
-    }
+    agent any
     stages {
         stage('build') {
             steps {
-                sh 'mvn --version'
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/BrendanSia/ms-products.git']])
             }
         }
     }
