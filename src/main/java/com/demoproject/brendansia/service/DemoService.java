@@ -50,7 +50,6 @@ public class DemoService {
     }
 
     public String processProduct(SaveRequestDTO requestDTO, String code){
-        //test changes
         Products newProducts = new Products();
         newProducts.setBrand("B");
         newProducts.setCategory("C");
