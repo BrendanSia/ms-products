@@ -40,20 +40,23 @@ public class DemoService {
         }
     }
 
-    public ProductDTO retrieveDetailsGet(String code) throws IOException {
-        ProductDTO result = new ProductDTO();
+    public ProductDTO retrieveDetailsGet(String code) {
         Products product = productsRepository.getByCode(code);
         if(!Objects.isNull(product)){
-            return result.build(product);
+            return ProductDTO.builder()
+                    .id(product.getId())
+                    .name(product.getName())
+                    .code(product.getCode())
+                    .category(product.getCategory())
+                    .brand(product.getBrand())
+                    .type(product.getType())
+                    .description(product.getDescription())
+                    .build();
         }
         return new ProductDTO();
     }
 
     public String processProduct(SaveRequestDTO requestDTO, String code){
-        if (true) {
-            Products products = new Products();
-            //empty if
-        }
         Products existingProduct = productsRepository.getByCode(code);
         if (Objects.isNull(existingProduct)) {
             return "Product does not exist";
@@ -85,7 +88,6 @@ public class DemoService {
     }
 
     public String getResponse(String path) throws IOException {
-        String file = new String(Files.readAllBytes(Path.of(path)));
-        return file;
+        return new String(Files.readAllBytes(Path.of(path)));
     }
 }
