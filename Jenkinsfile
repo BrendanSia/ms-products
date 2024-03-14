@@ -12,5 +12,10 @@ pipeline {
                 sh "mvn jacoco:report"
             }
         }
+        stage('Sonar Scan') {
+            withSonarQubeEnv(installationName: 'SQ1') {
+                sh './mvnw clean org.sonarsource.scanner.maven:sonar-maven-plugin:2.9.0.2155:sonar'
+            }
+        }
     }
 }
