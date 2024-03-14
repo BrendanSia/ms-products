@@ -5,21 +5,22 @@ import com.demoproject.brendansia.dto.SaveRequestDTO;
 import com.demoproject.brendansia.entity.Products;
 import com.demoproject.brendansia.repository.ProductsRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Objects;
 
 @org.springframework.stereotype.Service
+@Builder
+@AllArgsConstructor
 @RequiredArgsConstructor
 public class DemoService {
 
-    private final ObjectMapper objectMapper;
-    private final ProductsRepository productsRepository;
+    private ObjectMapper objectMapper;
+    private ProductsRepository productsRepository;
 
     public boolean saveDetail(SaveRequestDTO requestDTO){
         Products existingProduct = productsRepository.getByCode(requestDTO.getCode());
@@ -85,9 +86,5 @@ public class DemoService {
 
     public Page<Products> getAllProducts(int page, int size) {
         return productsRepository.findAll(PageRequest.of(page, size));
-    }
-
-    public String getResponse(String path) throws IOException {
-        return new String(Files.readAllBytes(Path.of(path)));
     }
 }
