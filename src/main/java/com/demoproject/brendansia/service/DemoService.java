@@ -53,6 +53,7 @@ public class DemoService {
         //test changes
         Products newProducts = new Products();
         newProducts.setBrand("B");
+        newProducts.setCategory("C");
         Products existingProduct = productsRepository.getByCode(code);
         if (Objects.isNull(existingProduct)) {
             return "Product does not exist";
