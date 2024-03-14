@@ -24,6 +24,7 @@
 		<sonar.tests>src/test/java</sonar.tests>
 		<sonar.projectKey>sonar-test</sonar.projectKey>
 		<sonar.host.url>http://localhost:9000</sonar.host.url>
+		<sonar.java.binaries>**/*</sonar.java.binaries>
 	</properties>
 	<dependencies>
 		<dependency>
