@@ -9,6 +9,8 @@ pipeline {
         stage('Install') {
             steps {
                 sh "mvn clean install"
+                sh "mvn clean test"
+                sh "mvn jacoco:report"
             }
         }
         stage('SonarQube analysis') {
