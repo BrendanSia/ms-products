@@ -50,6 +50,8 @@ public class DemoService {
     }
 
     public String processProduct(SaveRequestDTO requestDTO, String code){
+        //test new changes
+        Products newProduct = new Products();
         Products existingProduct = productsRepository.getByCode(code);
         if (Objects.isNull(existingProduct)) {
             return "Product does not exist";
