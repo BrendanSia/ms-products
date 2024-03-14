@@ -6,13 +6,12 @@ pipeline {
                 checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/BrendanSia/ms-products.git']])
             }
         }
-        stage('Jacoco Report') {
+        stage('Install') {
             steps {
-                sh "mvn clean test"
-                sh "mvn jacoco:report"
+                sh "mvn clean install"
             }
         }
-        stage('Sonar Scan') {
+        stage('SonarQube analysis') {
             steps {
                 withSonarQubeEnv(installationName: 'SQ1') {
                     sh './mvnw clean org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.0.2155:sonar'
