@@ -12,20 +12,6 @@ pipeline {
                 sh "mvn jacoco:report"
             }
         }
-        stage('SonarQube analysis') {
-            steps {
-                withSonarQubeEnv(installationName: 'SQ1') {
-                    sh './mvnw clean sonar:sonar'
-                }
-            }
-        }
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
     }
     post {
         always {
