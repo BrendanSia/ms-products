@@ -1,28 +1,29 @@
 #!/bin/bash
 
-# Define the output file for the report
-REPORT_FILE="failure_report.xml"
+# Path to the directory where XML reports are stored
+REPORT_DIR="reports"
 
-# Start building the XML report
-echo '<?xml version="1.0" encoding="UTF-8"?>' > "$REPORT_FILE"
-echo '<failure_report>' >> "$REPORT_FILE"
+# Check if the directory exists, if not create it
+mkdir -p "$REPORT_DIR"
 
-# Example: Include build information
-echo '  <build_info>' >> "$REPORT_FILE"
-echo "    <build_number>${BUILD_NUMBER}</build_number>" >> "$REPORT_FILE"
-echo "    <build_timestamp>$(date +%Y-%m-%d\ %H:%M:%S)</build_timestamp>" >> "$REPORT_FILE"
-echo '  </build_info>' >> "$REPORT_FILE"
+# Define the filename for the report
+REPORT_FILENAME="failure_report_$(date +"%Y%m%d_%H%M%S").xml"
 
-# Example: Include details of the failed stage
-if [[ -n "$FAILED_STAGE_NAME" ]]; then
-    echo '  <failed_stage>' >> "$REPORT_FILE"
-    echo "    <stage_name>${FAILED_STAGE_NAME}</stage_name>" >> "$REPORT_FILE"
-    echo "    <stage_details><![CDATA[${FAILED_STAGE_DETAILS}]]></stage_details>" >> "$REPORT_FILE"
-    echo '  </failed_stage>' >> "$REPORT_FILE"
+# Combine directory and filename to get the full path
+REPORT_PATH="$REPORT_DIR/$REPORT_FILENAME"
+
+# Check if a previous report exists
+if [ -f "$REPORT_PATH" ]; then
+    # If previous report exists, overwrite it with a new one
+    echo "Previous report exists. Overwriting..."
+    rm "$REPORT_PATH"
 fi
 
-# End the XML report
-echo '</failure_report>' >> "$REPORT_FILE"
+# Generate XML content for the report
+echo "<failureReport>" >> "$REPORT_PATH"
+echo "    <timestamp>$(date +"%Y-%m-%d %H:%M:%S")</timestamp>" >> "$REPORT_PATH"
+echo "    <uniqueIdentifier>$(uuidgen)</uniqueIdentifier>" >> "$REPORT_PATH"
+echo "    <!-- Add more information here -->" >> "$REPORT_PATH"
+echo "</failureReport>" >> "$REPORT_PATH"
 
-# Print the location of the generated report file for Jenkins
-echo "Report generated: ${REPORT_FILE}"
+echo "New report generated: $REPORT_PATH"
