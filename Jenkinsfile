@@ -27,14 +27,4 @@ pipeline {
             }
         }
     }
-    post {
-        always {
-            jacoco(execPattern: '**/target/jacoco.exec')
-            script {
-                withSonarQubeEnv('SQ1') {
-                     sonarQube credentialsId: '', serverUrl: 'http://localhost:9000', installationName: 'SQ1', scannerHome: ''
-                }
-            }
-        }
-    }
 }
