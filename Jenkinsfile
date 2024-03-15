@@ -2,11 +2,9 @@ pipeline {
     agent any
     stages {
         stage('Build') {
-             steps {
-                sh './jenkins_build.sh'
-                junit '*/build/test-results/*.xml'
-                step( [ $class: 'JacocoPublisher' ] )
-             }
+            steps {
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/BrendanSia/ms-products.git']])
+            }
         }
         stage('Install') {
             steps {
