@@ -2,9 +2,12 @@ pipeline {
     agent any
     stages {
         stage('Build') {
-            steps {
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/BrendanSia/ms-products.git']])
-            }
+            step([$class: 'JacocoPublisher',
+                  execPattern: 'target/*.exec',
+                  classPattern: 'target/classes',
+                  sourcePattern: 'src/main/java',
+                  exclusionPattern: 'src/test*'
+            ])
         }
         stage('Install') {
             steps {
