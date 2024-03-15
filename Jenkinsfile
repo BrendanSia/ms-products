@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                checkout scm
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/BrendanSia/ms-products.git']])
             }
         }
         stage('Install') {
@@ -14,11 +14,25 @@ pipeline {
         }
         stage('SonarQube analysis') {
             steps {
-                script {
-                    def scannerHome = tool 'scanner1'
-                    withSonarQubeEnv('SQ1') {
-                        sh "${scannerHome}/bin/sonar-scanner"
-                    }
+                withSonarQubeEnv(installationName: 'SQ1') {
+                    sh './mvnw clean sonar:sonar'
+                }
+            }
+        }
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+    }
+    post {
+        always {
+            jacoco(execPattern: '**/target/jacoco.exec')
+            script {
+                withSonarQubeEnv('SQ1') {
+                     sonarQube credentialsId: '', serverUrl: 'http://localhost:9000', installationName: 'SQ1', scannerHome: ''
                 }
             }
         }
