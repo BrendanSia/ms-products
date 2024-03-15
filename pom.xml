@@ -93,6 +93,9 @@
 						</configuration>
 					</execution>
 				</executions>
+				<configuration>
+					<destFile>target/jacoco.exec</destFile>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
