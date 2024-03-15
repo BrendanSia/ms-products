@@ -20,7 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @ExtendWith(MockitoExtension.class)
-public class ControllerTest {
+class ControllerTest {
 
     @Mock
     private DemoService demoService;
@@ -29,11 +29,11 @@ public class ControllerTest {
     private Controller controller;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
     }
 
     @Test
-    public void testGetProductDetail() {
+    void testGetProductDetail() {
         ProductDTO productDTO = new ProductDTO(); // You can create a sample DTO for testing
         when(demoService.retrieveDetailsGet("sampleCode")).thenReturn(productDTO);
 
@@ -43,7 +43,7 @@ public class ControllerTest {
     }
 
     @Test
-    public void testCreateProduct() {
+    void testCreateProduct() {
         SaveRequestDTO requestDTO = new SaveRequestDTO(); // You can create a sample request DTO for testing
         when(demoService.saveDetail(requestDTO)).thenReturn(true); // Assuming success for testing
 
@@ -55,7 +55,7 @@ public class ControllerTest {
     }
 
     @Test
-    public void testProcessProduct() {
+    void testProcessProduct() {
         SaveRequestDTO requestDTO = new SaveRequestDTO(); // You can create a sample request DTO for testing
         String code = "sampleCode";
         when(demoService.processProduct(requestDTO, code)).thenReturn("Processed successfully"); // Assuming success for testing
@@ -68,7 +68,7 @@ public class ControllerTest {
     }
 
     @Test
-    public void testDeleteProduct() {
+    void testDeleteProduct() {
         String code = "sampleCode";
         when(demoService.deleteProduct(code)).thenReturn("Deleted successfully"); // Assuming success for testing
 
@@ -80,7 +80,7 @@ public class ControllerTest {
     }
 
     @Test
-    public void testGetProducts() {
+    void testGetProducts() {
         Page<Products> productsPage = mock(Page.class);
 
         when(demoService.getAllProducts(0, 10)).thenReturn(productsPage);
