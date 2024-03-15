@@ -20,7 +20,6 @@
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 		<sonar.language>java</sonar.language>
 		<sonar.java.binaries>**/*</sonar.java.binaries>
-		<sonar.coverage.exclusions>src/main/java/com/demoproject/brendansia/dto</sonar.coverage.exclusions>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -70,6 +69,11 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.11</version>
+				<configuration>
+					<excludes>
+						<exclude>**/*com/demoproject/brendansia/dto/**</exclude>
+					</excludes>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>
