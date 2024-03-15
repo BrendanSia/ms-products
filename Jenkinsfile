@@ -4,12 +4,14 @@ pipeline {
         stage('Build & Install') {
             steps {
                 script {
-                    try {
-                        checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/BrendanSia/ms-products.git']])
-                        sh "mvn clean install"
-                        sh "mvn jacoco:report"
-                    } catch (err) {
-                        echo err
+                    checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/BrendanSia/ms-products.git']])
+                    def mvnResult = sh(script: "mvn clean install", returnStatus: true)
+                    def jacocoResult = sh(script: "mvn jacoco:report", returnStatus: true)
+
+                    // Pass stage details to report generation script
+                    if (mvnResult != 0 || jacocoResult != 0) {
+                        env.FAILED_STAGE_NAME = 'Build & Install'
+                        env.FAILED_STAGE_DETAILS = "Maven Build: ${mvnResult}\nJacoco Report: ${jacocoResult}"
                     }
                 }
             }
@@ -33,6 +35,23 @@ pipeline {
                     }
                 }
             }
+        }
+    }
+    post {
+        failure {
+            // Send email notification
+            mail bcc: '',
+                 body: "<b>Example</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}",
+                 cc: '',
+                 charset: 'UTF-8',
+                 from: '',
+                 mimeType: 'text/html',
+                 replyTo: '',
+                 subject: "ERROR CI: Project name -> ${env.JOB_NAME}",
+                 to: "foo@foomail.com"
+
+            // Generate failure report
+            sh './generate_report.sh'
         }
     }
 }
