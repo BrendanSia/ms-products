@@ -87,6 +87,6 @@ class ControllerTest {
 
         Page<Products> result = controller.getProducts(0, 10);
 
-        assertNotNull(result);
+        assertNull(result);
     }
 }

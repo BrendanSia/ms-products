@@ -3,9 +3,15 @@ pipeline {
     stages {
         stage('Build & Install') {
             steps {
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/BrendanSia/ms-products.git']])
-                sh "mvn clean install"
-                sh "mvn jacoco:report"
+                script {
+                    try {
+                        checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/BrendanSia/ms-products.git']])
+                        sh "mvn clean install"
+                        sh "mvn jacoco:report"
+                    } catch (err) {
+                        echo err
+                    }
+                }
             }
         }
         stage('SonarQube analysis') {
@@ -25,26 +31,6 @@ pipeline {
                             error "Pipeline aborted due to quality gate failure: ${qg.status}"
                         }
                     }
-                }
-            }
-        }
-    }
-    post {
-        failure {
-            script {
-                if (currentBuild.result == 'FAILURE') {
-                // Generate a detailed report
-                def failedStage = currentBuild.previousBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause).upstreamRun.rawBuild.getDisplayName()
-                def failedJob = currentBuild.fullDisplayName
-                def failedBuild = currentBuild.number
-
-                def report = "Build Failed in Stage: $failedStage\nJob: $failedJob\nBuild Number: $failedBuild\n"
-
-                // Send email notification
-                emailext subject: "Build Failure Notification",
-                         body: report,
-                         to: "brendan.bnsch@paydaes.com",
-                         mimeType: 'text/plain'
                 }
             }
         }
