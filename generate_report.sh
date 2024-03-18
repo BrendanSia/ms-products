@@ -8,6 +8,11 @@ generate_log_filename() {
 # Main script starts here
 log_file=$(generate_log_filename)
 
+# Ensure "logs" directory exists
+if [ ! -d "logs" ]; then
+    mkdir logs
+fi
+
 # Write the build failure log content to the file
 echo "Build failed at: $(date)" >> "$log_file"
 echo "Build console output:" >> "$log_file"
