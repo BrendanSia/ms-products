@@ -1,15 +1,12 @@
 #!/bin/bash
 
-# Path to the directory where XML reports are stored
 REPORT_DIR="reports"
 
-# Check if the directory exists, if not create it
+# If directory does not exist, create one
 mkdir -p "$REPORT_DIR"
 
-# Define the filename for the report
 REPORT_FILENAME="failure_report_$(date +"%Y%m%d_%H%M%S").xml"
 
-# Combine directory and filename to get the full path
 REPORT_PATH="$REPORT_DIR/$REPORT_FILENAME"
 
 # Check if a previous report exists
