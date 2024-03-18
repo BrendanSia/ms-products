@@ -1,32 +1,21 @@
 #!/bin/bash
 
-LOG_FILE="pipeline.log"
+LOG_DIR="reports"
 
-REPORT_DIR="reports"
+mkdir -p "$LOG_DIR"
 
-mkdir -p "$REPORT_DIR"
+LOG_FILENAME="build_failure_log_$(date +"%Y%m%d_%H%M%S").log"
 
-REPORT_FILENAME="failure_report_$(date +"%Y%m%d_%H%M%S").xml"
+LOG_PATH="$LOG_DIR/$LOG_FILENAME"
 
-REPORT_PATH="$REPORT_DIR/$REPORT_FILENAME"
-
-if [ -f "$REPORT_PATH" ]; then
-    echo "Previous report exists. Overwriting..."
-    rm "$REPORT_PATH"
+# Check if a previous log file exists
+if [ -f "$LOG_PATH" ]; then
+    # If previous log file exists, overwrite it with a new one
+    echo "Previous log file exists. Overwriting..."
+    rm "$LOG_PATH"
 fi
 
-# Generate XML content for the report
-echo "<failureReport>" >> "$REPORT_PATH"
-echo "    <timestamp>$(date +"%Y-%m-%d %H:%M:%S")</timestamp>" >> "$REPORT_PATH"
-echo "    <uniqueIdentifier>$(uuidgen)</uniqueIdentifier>" >> "$REPORT_PATH"
+cat > "$LOG_PATH"
 
-# Parse the log file for errors
-if [ -f "$LOG_FILE" ]; then
-    echo "    <errorDetails><![CDATA[" >> "$REPORT_PATH"
-    cat "$LOG_FILE" >> "$REPORT_PATH"
-    echo "    ]]></errorDetails>" >> "$REPORT_PATH"
-fi
+echo "Log file generated: $LOG_PATH"
 
-echo "</failureReport>" >> "$REPORT_PATH"
-
-echo "New report generated: $REPORT_PATH"
