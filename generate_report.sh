@@ -1,18 +1,21 @@
 #!/bin/bash
 
-LOG_DIR="reports"
-mkdir -p "$LOG_DIR"
-
-# Define a function to generate log file name with datetime
+# Function to generate log filename with timestamp
 generate_log_filename() {
-    echo "build_failure_log_$(date +"%Y%m%d_%H%M%S").log"
+    echo "reports/build_failure_log_$(date +"%Y%m%d_%H%M%S").log"
 }
 
-# Get the log filename
-LOG_FILENAME=$(generate_log_filename)
-LOG_PATH="$LOG_DIR/$LOG_FILENAME"
+# Main script starts here
+log_file=$(generate_log_filename)
 
-# Copy the pipeline log to the reports folder with a timestamped filename
-cp pipeline.log "$LOG_PATH"
+# Check if a previous log file exists and overwrite it with a new one
+if [ -f "$log_file" ]; then
+    echo "Previous log file exists. Overwriting..."
+    rm "$log_file"
+fi
 
-echo "Log file generated: $LOG_PATH"
+# Write the build failure log content to the file
+echo "Build failed at: $(date)" >> "$log_file"
+echo "Build console output:" >> "$log_file"
+echo "======================" >> "$log_file"
+cat >> "$log_file"
