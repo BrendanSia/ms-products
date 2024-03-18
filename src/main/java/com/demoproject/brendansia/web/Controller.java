@@ -62,7 +62,6 @@ public class Controller {
     public ResponseEntity<String> deleteProduct(
             @PathVariable String code
     ){
-        
         try{
             String response = demoService.deleteProduct(code);
             return new ResponseEntity<>(response, HttpStatus.OK);
