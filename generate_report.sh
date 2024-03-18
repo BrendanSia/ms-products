@@ -1,12 +1,14 @@
 #!/bin/bash
 
-# Function to generate log filename with timestamp
+# Function to generate log filename with build number and timestamp
 generate_log_filename() {
-    echo "logs/build_failed_$(date +"%Y%m%d_%H%M%S").log"
+    local build_number="$1"
+    echo "logs/build_failed_${build_number}_$(date +"%Y%m%d_%H%M%S").log"
 }
 
 # Main script starts here
-log_file=$(generate_log_filename)
+build_number="$1"  # Jenkins build number passed as argument
+log_file=$(generate_log_filename "$build_number")
 
 # Ensure "logs" directory exists
 if [ ! -d "logs" ]; then
