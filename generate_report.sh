@@ -1,23 +1,31 @@
 #!/bin/bash
 
-# Function to generate log filename with build number and timestamp
-generate_log_filename() {
-    local build_number="$1"
-    echo "logs/build_fail_${build_number}.log"  # Updated filename pattern
-}
+LOG_FILE="pipeline.log"
+REPORT_DIR="reports"
+mkdir -p "$REPORT_DIR"
 
-# Main script starts here
-build_number="$1"  # Jenkins build number passed as argument
-log_file=$(generate_log_filename "$build_number")
+REPORT_FILENAME="failure_report_$(date +"%Y%m%d_%H%M%S").xml"
 
-# Ensure "logs" directory exists
-mkdir -p logs
+REPORT_PATH="$REPORT_DIR/$REPORT_FILENAME"
 
-# Write the build failure log content to the file
-echo "Build failed at: $(date)" >> "$log_file"
-echo "Build console output:" >> "$log_file"
-echo "======================" >> "$log_file"
-cat "pipeline.log" >> "$log_file"
 
-# Clear pipeline.log
-> pipeline.log
+if [ -f "$REPORT_PATH" ]; then
+    # If previous report exists, overwrite it with a new one
+    echo "Previous report exists. Overwriting..."
+    rm "$REPORT_PATH"
+fi
+
+echo "<failureReport>" >> "$REPORT_PATH"
+echo "    <timestamp>$(date +"%Y-%m-%d %H:%M:%S")</timestamp>" >> "$REPORT_PATH"
+echo "    <uniqueIdentifier>$(uuidgen)</uniqueIdentifier>" >> "$REPORT_PATH"
+
+# Parse the log file for errors
+if [ -f "$LOG_FILE" ]; then
+    echo "    <errorDetails><![CDATA[" >> "$REPORT_PATH"
+    cat "$LOG_FILE" >> "$REPORT_PATH"
+    echo "    ]]></errorDetails>" >> "$REPORT_PATH"
+fi
+
+echo "</failureReport>" >> "$REPORT_PATH"
+
+echo "New report generated: $REPORT_PATH"
