@@ -14,9 +14,9 @@
 	<name>Brendan Sia</name>
 	<description>Demo project for Spring Boot - Brendan Sia</description>
 	<properties>
-		<java.version>21</java.version>
-		<maven.compiler.target>21</maven.compiler.target>
-		<maven.compiler.source>21</maven.compiler.source>
+		<java.version>17</java.version>
+		<maven.compiler.target>17</maven.compiler.target>
+		<maven.compiler.source>17</maven.compiler.source>
 		<jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
 		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
