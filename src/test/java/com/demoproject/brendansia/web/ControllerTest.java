@@ -2,7 +2,6 @@ package com.demoproject.brendansia.web;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.demoproject.brendansia.dto.ProductDTO;

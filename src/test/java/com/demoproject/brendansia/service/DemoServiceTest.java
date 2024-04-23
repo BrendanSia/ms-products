@@ -5,20 +5,17 @@ import com.demoproject.brendansia.dto.SaveRequestDTO;
 import com.demoproject.brendansia.entity.Products;
 import com.demoproject.brendansia.repository.ProductsRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
@@ -41,13 +38,25 @@ class DemoServiceTest {
     }
 
     @Test
-    void testSaveDetail() {
+    void testSaveDetailFailure() {
         SaveRequestDTO requestDTO = new SaveRequestDTO();
         requestDTO.setCode("123");
         requestDTO.setName("Test Product");
 
         Products existingProduct = new Products();
         existingProduct.setCode("123");
+
+        when(productsRepository.getByCode("123")).thenReturn(existingProduct);
+        when(productsRepository.findMaxId()).thenReturn(1);
+
+        Assertions.assertFalse(demoService.saveDetail(requestDTO));
+    }
+
+    @Test
+    void testSaveDetailSuccess() {
+        SaveRequestDTO requestDTO = new SaveRequestDTO();
+        requestDTO.setCode("123");
+        requestDTO.setName("Test Product");
 
         when(productsRepository.getByCode("123")).thenReturn(null);
         when(productsRepository.findMaxId()).thenReturn(0);
@@ -59,7 +68,7 @@ class DemoServiceTest {
     }
 
     @Test
-    void testRetrieveDetailsGet() {
+    void testRetrieveDetailsGetSuccess() {
         String code = "123";
         Products product = new Products();
         product.setCode(code);
@@ -71,6 +80,18 @@ class DemoServiceTest {
 
         assertEquals(productDTO.getCode(), code);
         assertEquals("Test Product", productDTO.getName());
+    }
+
+    @Test
+    void testRetrieveDetailsGetNull() {
+        String code = "123";
+        Products product = new Products();
+
+        when(productsRepository.getByCode(code)).thenReturn(null);
+
+        ProductDTO productDTO = demoService.retrieveDetailsGet(code);
+
+        assertNull(productDTO.getCode(), null);
     }
 
     @Test
@@ -92,6 +113,17 @@ class DemoServiceTest {
     }
 
     @Test
+    void testProcessProductDoesnotExist() {
+        String code = "123";
+        SaveRequestDTO requestDTO = new SaveRequestDTO();
+        requestDTO.setCode(code);
+        requestDTO.setName("Updated Product");
+
+        when(productsRepository.getByCode(code)).thenReturn(null);
+        assertEquals("Product does not exist", demoService.processProduct(requestDTO, code));
+    }
+
+    @Test
     void testDeleteProduct() {
         String code = "123";
         Products existingProduct = new Products();
@@ -103,6 +135,14 @@ class DemoServiceTest {
         assertEquals("Product deleted successfully", result);
 
         verify(productsRepository, times(1)).delete(existingProduct);
+    }
+
+    @Test
+    void testDeleteProductFail() {
+        when(productsRepository.getByCode("123")).thenReturn(null);
+
+        String result = demoService.deleteProduct("123");
+        assertEquals("Product does not exist", result);
     }
 
     @Test
