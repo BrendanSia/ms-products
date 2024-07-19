@@ -3,6 +3,7 @@ package com.demoproject.brendansia.service;
 import com.demoproject.brendansia.dto.ProductDTO;
 import com.demoproject.brendansia.dto.SaveRequestDTO;
 import com.demoproject.brendansia.entity.Products;
+import com.demoproject.brendansia.exceptions.BaseException;
 import com.demoproject.brendansia.repository.ProductsRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -10,10 +11,11 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
-@org.springframework.stereotype.Service
+@Service
 @Builder
 @AllArgsConstructor
 @RequiredArgsConstructor
@@ -21,6 +23,23 @@ public class DemoService {
 
     private ObjectMapper objectMapper;
     private ProductsRepository productsRepository;
+
+    public ProductDTO retrieveDetails(String code) {
+        Products product = productsRepository.getByCode(code);
+        if (product != null) {
+            return ProductDTO.builder()
+                    .id(product.getId())
+                    .name(product.getName())
+                    .code(product.getCode())
+                    .category(product.getCategory())
+                    .brand(product.getBrand())
+                    .type(product.getType())
+                    .description(product.getDescription())
+                    .build();
+        }
+
+        throw new BaseException("Product with code " + code + " not found");
+    }
 
     public boolean saveDetail(SaveRequestDTO requestDTO){
         Products existingProduct = productsRepository.getByCode(requestDTO.getCode());
@@ -36,32 +55,14 @@ public class DemoService {
             product.setDescription(requestDTO.getDescription());
             productsRepository.save(product);
             return true;
-        } else {
-            return false;
         }
+
+        throw new BaseException("Product already exists");
     }
 
-    public ProductDTO retrieveDetailsGet(String code) {
-        Products product = productsRepository.getByCode(code);
-        if(!Objects.isNull(product)){
-            return ProductDTO.builder()
-                    .id(product.getId())
-                    .name(product.getName())
-                    .code(product.getCode())
-                    .category(product.getCategory())
-                    .brand(product.getBrand())
-                    .type(product.getType())
-                    .description(product.getDescription())
-                    .build();
-        }
-        return new ProductDTO();
-    }
-
-    public String processProduct(SaveRequestDTO requestDTO, String code){
+    public String updateProduct(SaveRequestDTO requestDTO, String code){
         Products existingProduct = productsRepository.getByCode(code);
-        if (Objects.isNull(existingProduct)) {
-            return "Product does not exist";
-        } else {
+        if (!Objects.isNull(existingProduct)) {
             existingProduct.setId(existingProduct.getId());
             existingProduct.setCode(requestDTO.getCode());
             existingProduct.setName(requestDTO.getName());
@@ -73,6 +74,8 @@ public class DemoService {
             productsRepository.saveAndFlush(existingProduct);
             return "Record updated successfully";
         }
+
+        throw new BaseException("Product does not exist");
     }
 
     public String deleteProduct (String code) {

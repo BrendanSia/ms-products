@@ -1,91 +1,148 @@
 package com.demoproject.brendansia.web;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import com.demoproject.brendansia.dto.ProductDTO;
+
 import com.demoproject.brendansia.dto.SaveRequestDTO;
 import com.demoproject.brendansia.entity.Products;
+import com.demoproject.brendansia.exceptions.BaseException;
+import com.demoproject.brendansia.repository.ProductsRepository;
 import com.demoproject.brendansia.service.DemoService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.bind.annotation.RequestHeader;
+
 
 @ExtendWith(MockitoExtension.class)
 class ControllerTest {
-
-    @Mock
-    private DemoService demoService;
-
     @InjectMocks
     private Controller controller;
+    @Mock
+    private DemoService demoService;
+    @Mock
+    private ProductsRepository productsRepository;
+
+    ObjectMapper objectMapper;
+    MockMvc mockMvc;
 
     @BeforeEach
-    void setUp() {
+    void setup() {
+        objectMapper = new ObjectMapper();
+        mockMvc = standaloneSetup(controller)
+                .build();
+    }
+    @Test
+    @SneakyThrows
+    void getProductDetail_returnResult() {
+        when(demoService.retrieveDetails("123")).thenReturn(new ProductDTO());
+
+        MvcResult mvcResult = mockMvc.perform(get("/api/products/detail/123"))
+                .andExpect(status().isOk()).andReturn();
+
+        String response = mvcResult.getResponse().getContentAsString();
+        ProductDTO actualProductDTO = objectMapper.readValue(response, ProductDTO.class);
+        Assertions.assertEquals(new ProductDTO(), actualProductDTO);
     }
 
     @Test
-    void testGetProductDetail() {
-        ProductDTO productDTO = new ProductDTO(); // You can create a sample DTO for testing
-        when(demoService.retrieveDetailsGet("sampleCode")).thenReturn(productDTO);
+    @SneakyThrows
+    void getProductDetail_returnFailure() {
+        when(demoService.retrieveDetails("123")).thenThrow(new BaseException("Product with code 123 not found"));
 
-        ProductDTO result = controller.getProductDetail("sampleCode");
+        MvcResult mvcResult = mockMvc.perform(get("/api/products/detail/123"))
+                .andExpect(status().isOk()).andReturn();
 
-        assertNotNull(result);
+        String responseJson = mvcResult.getResponse().getContentAsString();
+        Assertions.assertEquals("Product with code 123 not found", responseJson.trim());
     }
 
     @Test
-    void testCreateProduct() {
-        SaveRequestDTO requestDTO = new SaveRequestDTO(); // You can create a sample request DTO for testing
-        when(demoService.saveDetail(requestDTO)).thenReturn(true); // Assuming success for testing
+    @SneakyThrows
+    void createProduct_returnSuccess(){
+        String requestBody = "{ \"code\": \"XYZ123\", \"name\": \"Product Name\", \"description\": \"Product Description\" }";
+        SaveRequestDTO requestDTO = new ObjectMapper().readValue(requestBody, SaveRequestDTO.class);
+        demoService.saveDetail(requestDTO);
 
-        ResponseEntity<String> responseEntity = controller.createProduct(requestDTO);
+        MvcResult mvcResult = mockMvc.perform(post("/api/products/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals("Product saved successfully", responseEntity.getBody());
+        // Assert response body (optional)
+        String responseBody = mvcResult.getResponse().getContentAsString();
+        Assertions.assertEquals("Product saved successfully.", responseBody.trim());
     }
 
     @Test
-    void testProcessProduct() {
-        SaveRequestDTO requestDTO = new SaveRequestDTO(); // You can create a sample request DTO for testing
-        String code = "sampleCode";
-        when(demoService.processProduct(requestDTO, code)).thenReturn("Processed successfully"); // Assuming success for testing
+    @SneakyThrows
+    void createProduct_fail_existingProduct() {
+        String requestBody = "{ \"code\": \"XYZ123\", \"name\": \"Product Name\", \"description\": \"Product Description\" }";
+        SaveRequestDTO requestDTO = new ObjectMapper().readValue(requestBody, SaveRequestDTO.class);
 
-        ResponseEntity<String> responseEntity = controller.processProduct(requestDTO, code);
+        when(demoService.saveDetail(requestDTO)).thenThrow(new BaseException("Product already exists"));
 
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals("Processed successfully", responseEntity.getBody());
+        MvcResult mvcResult = mockMvc.perform(post("/api/products/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String responseBody = mvcResult.getResponse().getContentAsString();
+        Assertions.assertEquals("Product already exists", responseBody.trim());
     }
 
     @Test
-    void testDeleteProduct() {
-        String code = "sampleCode";
-        when(demoService.deleteProduct(code)).thenReturn("Deleted successfully"); // Assuming success for testing
+    @SneakyThrows
+    void updateProduct_returnSuccess(){
+        String requestBody = "{ \"code\": \" 123 \", \"name\": \"Updated Product Name\", \"description\": \"Updated Description\" }";
+        SaveRequestDTO requestDTO = new ObjectMapper().readValue(requestBody, SaveRequestDTO.class);
 
-        ResponseEntity<String> responseEntity = controller.deleteProduct(code);
+        Mockito.when(demoService.updateProduct(requestDTO, "123")).thenReturn("Record updated successfully");
 
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals("Deleted successfully", responseEntity.getBody());
+        MvcResult mvcResult = mockMvc.perform(post("/api/products/update/{code}", "123")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String responseBody = mvcResult.getResponse().getContentAsString();
+        Assertions.assertEquals("Record updated successfully", responseBody.trim());
     }
 
     @Test
-    void testGetProducts() {
-        Page<Products> productsPage = mock(Page.class);
+    @SneakyThrows
+    void updateProduct_returnFailure(){
+        String requestBody = "{ \"code\": \" 123 \", \"name\": \"Updated Product Name\", \"description\": \"Updated Description\" }";
+        SaveRequestDTO requestDTO = new ObjectMapper().readValue(requestBody, SaveRequestDTO.class);
 
-        when(demoService.getAllProducts(0, 10)).thenReturn(productsPage);
+        Mockito.when(demoService.updateProduct(requestDTO, "123")).thenThrow(new BaseException("Product does not exist"));
 
-        Page<Products> result = controller.getProducts(0, 10);
+        MvcResult mvcResult = mockMvc.perform(post("/api/products/update/{code}", "123")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        assertNotNull(result);
+        String responseBody = mvcResult.getResponse().getContentAsString();
+        Assertions.assertEquals("Product does not exist", responseBody.trim());
     }
 }

@@ -4,33 +4,41 @@ pipeline {
         stage('Build & Install') {
             steps {
                 script {
-                    checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/BrendanSia/ms-products.git']])
-                    def mvnResult = sh(script: "mvn clean install", returnStatus: true)
-                    def jacocoResult = sh(script: "mvn jacoco:report", returnStatus: true)
-
-                    // Pass stage details to report generation script
-                    if (mvnResult != 0 || jacocoResult != 0) {
-                        env.FAILED_STAGE_NAME = 'Build & Install'
-                        env.FAILED_STAGE_DETAILS = "Maven Build: ${mvnResult}\nJacoco Report: ${jacocoResult}"
+                    logfile = 'pipeline.log'
+                    try {
+                        checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/BrendanSia/ms-products.git']])
+                        sh "mvn clean install >> ${logfile} 2>&1"
+                    } catch (Exception e) {
+                        writeFile file: "${logfile}", text: "Failed in Build & Install stage: ${e.toString()}\n", append: true
+                        currentBuild.result = 'FAILURE'
                     }
                 }
             }
         }
         stage('SonarQube analysis') {
             steps {
-                withSonarQubeEnv(installationName: 'SQ1') {
-                    sh 'mvn clean package sonar:sonar'
+                script {
+                    logfile = 'pipeline.log'
+                    try {
+                        withSonarQubeEnv(installationName: 'SQ1') {
+                            sh "mvn clean package sonar:sonar >> ${logfile} 2>&1"
+                        }
+                    } catch (Exception e) {
+                        writeFile file: "${logfile}", text: "Failed in SonarQube analysis stage: ${e.toString()}\n", append: true
+                        currentBuild.result = 'FAILURE'
+                    }
                 }
             }
         }
         stage("Quality Gate") {
             steps {
-                timeout(time: 15, unit: 'MINUTES') { // If analysis takes longer than indicated time, then build will be aborted
-                    waitForQualityGate abortPipeline: true
-                    script{
-                        def qg = waitForQualityGate()
-                        if(qg.status != 'OK'){
-                            error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                timeout(time: 15, unit: 'MINUTES') {
+                    script {
+                        try {
+                            waitForQualityGate abortPipeline: true
+                        } catch (Exception e) {
+                            writeFile file: "${logfile}", text: "Failed in Quality Gate stage: ${e.toString()}\n", append: true
+                            currentBuild.result = 'FAILURE'
                         }
                     }
                 }
@@ -38,9 +46,20 @@ pipeline {
         }
     }
     post {
+        always {
+            archiveArtifacts artifacts: 'pipeline.log', onlyIfSuccessful: false
+        }
         failure {
-            // Generate failure report
             sh './generate_report.sh'
+
+            def currentDate = new Date().format("yyyyMMdd_HHmmss")
+            def attachmentsPattern = "reports/failure_report_${currentDate}.xml"
+            def failedStageName = env.FAILED_STAGE_NAME ?: 'Unknown Stage'
+
+            emailext attachLog: true,
+            subject: "Pipeline Build Failure",
+            body: "The build failed in stage '${failedStageName}'. Please find the attached report for details.",
+            to: "your@email.com"
         }
     }
 }

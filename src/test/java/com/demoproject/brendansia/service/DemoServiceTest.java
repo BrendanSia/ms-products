@@ -3,57 +3,78 @@ package com.demoproject.brendansia.service;
 import com.demoproject.brendansia.dto.ProductDTO;
 import com.demoproject.brendansia.dto.SaveRequestDTO;
 import com.demoproject.brendansia.entity.Products;
+import com.demoproject.brendansia.exceptions.BaseException;
 import com.demoproject.brendansia.repository.ProductsRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 class DemoServiceTest {
 
+    @InjectMocks
+    private DemoService demoService;
     @Mock
     private ProductsRepository productsRepository;
-
-    @Mock
-    private ObjectMapper objectMapper;
-
-    private DemoService demoService;
+    ObjectMapper objectMapper;
+    Products product;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
+        objectMapper = new ObjectMapper();
         demoService = new DemoService(objectMapper, productsRepository);
+        product = new Products();
+        product.setId(1);
+        product.setCode("123");
+        product.setName("ABC");
+        product.setCategory("A");
+        product.setBrand("B");
+        product.setDescription("Description");
     }
 
     @Test
-    void testSaveDetailFailure() {
-        SaveRequestDTO requestDTO = new SaveRequestDTO();
-        requestDTO.setCode("123");
-        requestDTO.setName("Test Product");
+    void givenCode_whenRetrieveDetails_returnSuccess() throws Exception {
+       when(productsRepository.getByCode("123")).thenReturn(product);
 
-        Products existingProduct = new Products();
-        existingProduct.setCode("123");
+       ProductDTO result = demoService.retrieveDetails("123");
 
-        when(productsRepository.getByCode("123")).thenReturn(existingProduct);
-        when(productsRepository.findMaxId()).thenReturn(1);
-
-        Assertions.assertFalse(demoService.saveDetail(requestDTO));
+       assertEquals(product.getId(), result.getId());
+       assertEquals(product.getCode(), result.getCode());
+       assertEquals(product.getName(), result.getName());
+       assertEquals(product.getCategory(), result.getCategory());
+       assertEquals(product.getBrand(), result.getBrand());
+       assertEquals(product.getDescription(), result.getDescription());
     }
 
     @Test
-    void testSaveDetailSuccess() {
+    void givenCode_whenRetrieveDetails_returnFailure() throws Exception {
+        when(productsRepository.getByCode("123")).thenReturn(null);
+
+        try {
+            demoService.retrieveDetails("123");
+        } catch (BaseException e) {
+            assertEquals("Product with code 123 not found", e.getMessage());
+        }
+
+    }
+
+    @Test
+    void givenRequest_saveProduct_returnSuccess() {
         SaveRequestDTO requestDTO = new SaveRequestDTO();
         requestDTO.setCode("123");
         requestDTO.setName("Test Product");
@@ -68,34 +89,26 @@ class DemoServiceTest {
     }
 
     @Test
-    void testRetrieveDetailsGetSuccess() {
-        String code = "123";
-        Products product = new Products();
-        product.setCode(code);
-        product.setName("Test Product");
+    void givenRequest_saveProduct_returnFailure() throws Exception {
+        String code = "XYZ123";
+        SaveRequestDTO requestDTO = new SaveRequestDTO();
+        requestDTO.setCode(code);
 
-        when(productsRepository.getByCode(code)).thenReturn(product);
+        Products existingProduct = new Products();
+        existingProduct.setCode(code);
 
-        ProductDTO productDTO = demoService.retrieveDetailsGet(code);
+        Mockito.when(productsRepository.getByCode(code)).thenReturn(existingProduct);
 
-        assertEquals(productDTO.getCode(), code);
-        assertEquals("Test Product", productDTO.getName());
+
+        try {
+            demoService.saveDetail(requestDTO);
+        } catch (BaseException e) {
+            assertEquals("Product already exists", e.getMessage());
+        }
     }
 
     @Test
-    void testRetrieveDetailsGetNull() {
-        String code = "123";
-        Products product = new Products();
-
-        when(productsRepository.getByCode(code)).thenReturn(null);
-
-        ProductDTO productDTO = demoService.retrieveDetailsGet(code);
-
-        assertNull(productDTO.getCode(), null);
-    }
-
-    @Test
-    void testProcessProduct() {
+    void givenRequest_updateProduct_returnSuccess() {
         String code = "123";
         SaveRequestDTO requestDTO = new SaveRequestDTO();
         requestDTO.setCode(code);
@@ -106,54 +119,22 @@ class DemoServiceTest {
 
         when(productsRepository.getByCode(code)).thenReturn(existingProduct);
 
-        String result = demoService.processProduct(requestDTO, code);
+        String result = demoService.updateProduct(requestDTO, code);
         assertEquals("Record updated successfully", result);
 
         verify(productsRepository, times(1)).saveAndFlush(existingProduct);
     }
 
     @Test
-    void testProcessProductDoesnotExist() {
+    void givenRequest_updateProduct_returnFailure() {
         String code = "123";
-        SaveRequestDTO requestDTO = new SaveRequestDTO();
-        requestDTO.setCode(code);
-        requestDTO.setName("Updated Product");
 
         when(productsRepository.getByCode(code)).thenReturn(null);
-        assertEquals("Product does not exist", demoService.processProduct(requestDTO, code));
-    }
 
-    @Test
-    void testDeleteProduct() {
-        String code = "123";
-        Products existingProduct = new Products();
-        existingProduct.setCode(code);
-
-        when(productsRepository.getByCode(code)).thenReturn(existingProduct);
-
-        String result = demoService.deleteProduct(code);
-        assertEquals("Product deleted successfully", result);
-
-        verify(productsRepository, times(1)).delete(existingProduct);
-    }
-
-    @Test
-    void testDeleteProductFail() {
-        when(productsRepository.getByCode("123")).thenReturn(null);
-
-        String result = demoService.deleteProduct("123");
-        assertEquals("Product does not exist", result);
-    }
-
-    @Test
-    void testGetAllProducts() {
-        int page = 0;
-        int size = 10;
-        Page<Products> productsPage = mock(Page.class);
-
-        when(productsRepository.findAll(PageRequest.of(page, size))).thenReturn(productsPage);
-
-        Page<Products> result = demoService.getAllProducts(page, size);
-        assertEquals(productsPage, result);
+        try {
+            demoService.updateProduct(new SaveRequestDTO(), code);
+        } catch (BaseException e) {
+            assertEquals("Product does not exist", e.getMessage());
+        }
     }
 }

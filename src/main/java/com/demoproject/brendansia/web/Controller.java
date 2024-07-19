@@ -3,8 +3,10 @@ package com.demoproject.brendansia.web;
 import com.demoproject.brendansia.dto.ProductDTO;
 import com.demoproject.brendansia.dto.SaveRequestDTO;
 import com.demoproject.brendansia.entity.Products;
+import com.demoproject.brendansia.exceptions.BaseException;
 import com.demoproject.brendansia.service.DemoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,45 +18,43 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:3000")
 public class Controller {
 
+    @Autowired
     private final DemoService demoService;
 
     @GetMapping(value = "/detail/{code}")
-    public ProductDTO getProductDetail(
+    public ResponseEntity<Object> getProductDetail(
             @PathVariable String code
-    ){
-        try{
-            return demoService.retrieveDetailsGet(code);
-        }catch(Exception e){
-            return new ProductDTO();
+    ) {
+        try {
+            ProductDTO productDTO = demoService.retrieveDetails(code);
+            return ResponseEntity.ok(productDTO);
+        } catch (BaseException e) {
+            return ResponseEntity.status(HttpStatus.OK).body(e.getMessage());
         }
     }
 
-    @PostMapping()
+    @PostMapping(value="/create")
     public ResponseEntity<String> createProduct(
             @RequestBody SaveRequestDTO requestDTO
     ){
-        try{
-            boolean success = demoService.saveDetail(requestDTO);
-            if (success) {
-                return new ResponseEntity<>("Product saved successfully", HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("Product already exists", HttpStatus.OK);
-            }
-        }catch(Exception e){
-            throw new RuntimeException();
+        try {
+            demoService.saveDetail(requestDTO);
+            return ResponseEntity.ok("Product saved successfully.");
+        } catch (BaseException e) {
+            return ResponseEntity.status(HttpStatus.OK).body(e.getMessage());
         }
     }
 
-    @PostMapping(value="/process/{code}")
+    @PostMapping(value="/update/{code}")
     public ResponseEntity<String> processProduct(
             @RequestBody SaveRequestDTO requestDTO,
             @PathVariable String code
     ){
         try{
-            String response = demoService.processProduct(requestDTO, code);
+            String response = demoService.updateProduct(requestDTO, code);
             return new ResponseEntity<>(response, HttpStatus.OK);
-        }catch(Exception e){
-            throw new RuntimeException();
+        } catch (BaseException e) {
+            return ResponseEntity.status(HttpStatus.OK).body(e.getMessage());
         }
     }
 
@@ -66,7 +66,7 @@ public class Controller {
             String response = demoService.deleteProduct(code);
             return new ResponseEntity<>(response, HttpStatus.OK);
         }catch(Exception e){
-            throw new RuntimeException();
+            throw new IllegalArgumentException("Error deleting record");
         }
     }
 
