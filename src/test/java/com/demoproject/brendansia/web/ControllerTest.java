@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 import com.demoproject.brendansia.dto.ProductDTO;
 
 import com.demoproject.brendansia.dto.SaveRequestDTO;
-import com.demoproject.brendansia.entity.Products;
 import com.demoproject.brendansia.exceptions.BaseException;
 import com.demoproject.brendansia.repository.ProductsRepository;
 import com.demoproject.brendansia.service.DemoService;
@@ -27,8 +26,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -84,8 +81,8 @@ class ControllerTest {
         MvcResult mvcResult = mockMvc.perform(post("/api/products/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
-                .andExpect(status().isOk())
-                .andReturn();
+                        .andExpect(status().isOk())
+                        .andReturn();
 
         // Assert response body (optional)
         String responseBody = mvcResult.getResponse().getContentAsString();
@@ -103,8 +100,8 @@ class ControllerTest {
         MvcResult mvcResult = mockMvc.perform(post("/api/products/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
-                .andExpect(status().isOk())
-                .andReturn();
+                        .andExpect(status().isOk())
+                        .andReturn();
 
         String responseBody = mvcResult.getResponse().getContentAsString();
         Assertions.assertEquals("Product already exists", responseBody.trim());
@@ -121,8 +118,8 @@ class ControllerTest {
         MvcResult mvcResult = mockMvc.perform(post("/api/products/update/{code}", "123")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
-                .andExpect(status().isOk())
-                .andReturn();
+                        .andExpect(status().isOk())
+                        .andReturn();
 
         String responseBody = mvcResult.getResponse().getContentAsString();
         Assertions.assertEquals("Record updated successfully", responseBody.trim());
@@ -139,8 +136,8 @@ class ControllerTest {
         MvcResult mvcResult = mockMvc.perform(post("/api/products/update/{code}", "123")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
-                .andExpect(status().isOk())
-                .andReturn();
+                        .andExpect(status().isOk())
+                        .andReturn();
 
         String responseBody = mvcResult.getResponse().getContentAsString();
         Assertions.assertEquals("Product does not exist", responseBody.trim());
