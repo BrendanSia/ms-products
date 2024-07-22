@@ -34,8 +34,6 @@ class ControllerTest {
     private Controller controller;
     @Mock
     private DemoService demoService;
-    @Mock
-    private ProductsRepository productsRepository;
 
     ObjectMapper objectMapper;
     MockMvc mockMvc;
@@ -84,7 +82,6 @@ class ControllerTest {
                         .andExpect(status().isOk())
                         .andReturn();
 
-        // Assert response body (optional)
         String responseBody = mvcResult.getResponse().getContentAsString();
         Assertions.assertEquals("Product saved successfully.", responseBody.trim());
     }
