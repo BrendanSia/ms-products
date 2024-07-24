@@ -1,9 +1,6 @@
 package com.demoproject.brendansia.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,10 +13,15 @@ public class Product {
     private Integer id;
     @Column(unique = true)
     private String code;
+    @Column
     private String name;
+    @Column
     private String category;
+    @Column
     private String brand;
+    @Column
     private String type;
+    @Column
     private String description;
 
 }
