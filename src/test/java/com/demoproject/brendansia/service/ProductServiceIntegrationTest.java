@@ -5,19 +5,16 @@ import com.demoproject.brendansia.dto.SaveRequestDTO;
 import com.demoproject.brendansia.entity.Product;
 import com.demoproject.brendansia.exceptions.ProductException;
 import com.demoproject.brendansia.repository.ProductRepository;
-import com.demoproject.brendansia.service.ProductService;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -36,6 +33,15 @@ public class ProductServiceIntegrationTest {
 
         assertNotNull(productDTO);
         assertEquals("P001", productDTO.getCode());
+    }
+
+    @Test
+    public void givenProduct_whenGetByCode_thenReturnFail() {
+        try {
+            productService.retrieveDetails("123");
+        } catch (ProductException e) {
+            assertEquals("Product does not exist", e.getMessage());
+        }
     }
 
     @Test
