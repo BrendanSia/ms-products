@@ -40,7 +40,7 @@ class ProductServiceTest {
 
     @Test
     void givenCode_whenRetrieveDetails_returnSuccess() throws Exception {
-       when(productRepository.getByCode("123")).thenReturn(product);
+       when(productRepository.findByCode("123")).thenReturn(product);
 
        ProductDTO result = productService.retrieveDetails("123");
 
@@ -54,7 +54,7 @@ class ProductServiceTest {
 
     @Test
     void givenCode_whenRetrieveDetails_returnFailure() throws Exception {
-        when(productRepository.getByCode("123")).thenReturn(null);
+        when(productRepository.findByCode("123")).thenReturn(null);
 
         try {
             productService.retrieveDetails("123");
@@ -70,8 +70,8 @@ class ProductServiceTest {
         requestDTO.setCode("123");
         requestDTO.setName("Test Product");
 
-        when(productRepository.getByCode("123")).thenReturn(null);
-        when(productRepository.findMaxId()).thenReturn(0);
+        when(productRepository.findByCode("123")).thenReturn(null);
+        when(productRepository.findTopByOrderByIdDesc()).thenReturn(product);
 
         boolean saved = productService.saveDetail(requestDTO);
         assertTrue(saved);
@@ -88,7 +88,7 @@ class ProductServiceTest {
         Product existingProduct = new Product();
         existingProduct.setCode(code);
 
-        Mockito.when(productRepository.getByCode(code)).thenReturn(existingProduct);
+        Mockito.when(productRepository.findByCode(code)).thenReturn(existingProduct);
 
 
         try {
@@ -108,7 +108,7 @@ class ProductServiceTest {
         Product existingProduct = new Product();
         existingProduct.setCode(code);
 
-        when(productRepository.getByCode(code)).thenReturn(existingProduct);
+        when(productRepository.findByCode(code)).thenReturn(existingProduct);
 
         String result = productService.updateProduct(requestDTO, code);
         assertEquals("Record updated successfully", result);
@@ -120,7 +120,7 @@ class ProductServiceTest {
     void givenRequest_updateProduct_returnFailure() {
         String code = "123";
 
-        when(productRepository.getByCode(code)).thenReturn(null);
+        when(productRepository.findByCode(code)).thenReturn(null);
 
         try {
             productService.updateProduct(new SaveRequestDTO(), code);

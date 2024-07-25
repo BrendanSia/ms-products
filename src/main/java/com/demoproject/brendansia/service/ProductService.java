@@ -22,7 +22,7 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     public ProductDTO retrieveDetails(String code) throws ProductException {
-        Product product = productRepository.getByCode(code);
+        Product product = productRepository.findByCode(code);
         if (Objects.isNull(product)) {
             throw new ProductException(PRODUCT_NOT_FOUND);
         }
@@ -38,13 +38,13 @@ public class ProductService {
     }
 
     public boolean saveDetail(SaveRequestDTO requestDTO) throws ProductException {
-        Product existingProduct = productRepository.getByCode(requestDTO.getCode());
+        Product existingProduct = productRepository.findByCode(requestDTO.getCode());
         if (!Objects.isNull(existingProduct)) {
             throw new ProductException(PRODUCT_ALREADY_EXISTS);
         }
-        Integer latestId = productRepository.findMaxId();
+        Product latest = productRepository.findTopByOrderByIdDesc();
         Product product = new Product();
-        product.setId(latestId + 1);
+        product.setId(latest.getId() + 1);
         product.setCode(requestDTO.getCode());
         product.setName(requestDTO.getName());
         product.setCategory(requestDTO.getCategory());
@@ -56,7 +56,7 @@ public class ProductService {
     }
 
     public String updateProduct(SaveRequestDTO requestDTO, String code){
-        Product existingProduct = productRepository.getByCode(code);
+        Product existingProduct = productRepository.findByCode(code);
         if (Objects.isNull(existingProduct)) {
             throw new ProductException(PRODUCT_NOT_FOUND);
         }
@@ -73,7 +73,7 @@ public class ProductService {
     }
 
     public String deleteProduct (String code) {
-        Product existingProduct = productRepository.getByCode(code);
+        Product existingProduct = productRepository.findByCode(code);
         if (Objects.isNull(existingProduct)) {
             throw new ProductException(PRODUCT_NOT_FOUND);
         }
