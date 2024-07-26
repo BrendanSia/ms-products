@@ -1,23 +1,18 @@
-CREATE TABLE IF NOT EXISTS t_product (
-  id INT NOT NULL PRIMARY KEY,
-  code VARCHAR(9) NOT NULL,
-  name VARCHAR(90) NOT NULL,
-  category VARCHAR(28) NOT NULL,
-  brand VARCHAR(28),
-  type VARCHAR(21),
-  description VARCHAR(180),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT UX_product_code UNIQUE (code)
-);
+--liquibase formatted sql
+--changeset author:your_name id:create-t_product
 
-CREATE TABLE IF NOT EXISTS t_price (
-  id INT NOT NULL PRIMARY KEY,
-  amount DECIMAL(10,2) NOT NULL,
-  valid_from DATE NOT NULL,
-  valid_to DATE,
-  product_id INT NOT NULL,
-  CONSTRAINT FK_price_product FOREIGN KEY (product_id) REFERENCES t_product(id)
+CREATE TABLE t_product (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(9) NOT NULL,
+    name VARCHAR(90) NOT NULL,
+    category VARCHAR(28) NOT NULL,
+    brand VARCHAR(28),
+    type VARCHAR(21),
+    description VARCHAR(180),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT UX_product_code UNIQUE (code)
 );
 
 INSERT INTO t_product (id, code, name, category, brand, type, description) VALUES (1, 'P001', 'MASK ADULT Surgical 3 ply 50''S MEDICOS with box', 'Health Accessories', 'Medicos', 'Hygiene', 'Colour: Blue (ear loop outside, ear loop inside- random assigned), Green, Purple, White, Lime Green, Yellow, Pink');
@@ -35,6 +30,3 @@ INSERT INTO t_product (id, code, name, category, brand, type, description) VALUE
 INSERT INTO t_product (id, code, name, category, brand, type, description) VALUES (13, 'P013', 'AKEMI Cotton Select Fitted Bedsheet Set - Adore 730TC', 'Bedding', 'Akemi', 'Bedding Sheets', '100% Cotton Twill. Super Single.');
 INSERT INTO t_product (id, code, name, category, brand, type, description) VALUES (14, 'P014', 'Samsung Note10+ Phone', 'Mobile & Gadgets', 'OEM', 'Mobile Phones', 'OEM Phone Models');
 INSERT INTO t_product (id, code, name, category, brand, type, description) VALUES (15, 'P015', 'Keknis Basic Wide Long Shawl', 'Hijab', 'No Brand', 'Plain Shawl', '1.8m X 0.7m (+/-). Heavy chiffon (120 gsm).');
-
-INSERT INTO t_price (id, amount, valid_from, product_id) VALUES (1, 29.99, CURRENT_DATE(), 15);
-COMMIT;
