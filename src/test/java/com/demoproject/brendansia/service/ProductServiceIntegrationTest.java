@@ -10,8 +10,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,7 +48,7 @@ public class ProductServiceIntegrationTest {
     }
 
     @Test
-    public void givenProduct_whenSave_thenReturnSuccess() {
+    public void givenProduct_whenCreate_thenReturnSuccess() {
         SaveRequestDTO requestDTO = SaveRequestDTO.builder()
                 .id(4)
                 .code("P004")
@@ -64,7 +67,7 @@ public class ProductServiceIntegrationTest {
     }
 
     @Test
-    public void givenInvalidProduct_whenSave_thenFail() {
+    public void givenInvalidProduct_whenCreate_thenFail() {
         SaveRequestDTO requestDTO = SaveRequestDTO.builder()
                 .id(1)
                 .code("123")
@@ -79,5 +82,61 @@ public class ProductServiceIntegrationTest {
         } catch (ProductException e) {
             Assertions.assertEquals("Product already exists", e.getMessage());
         }
+    }
+
+    @Test
+    public void givenValidProduct_whenUpdate_thenReturnSuccess() {
+        SaveRequestDTO requestDTO = SaveRequestDTO.builder()
+                .id(1)
+                .code("P001")
+                .name("ABCD")
+                .category("AB")
+                .brand("BC")
+                .description("Description")
+                .build();
+
+        productService.updateProduct(requestDTO, requestDTO.getCode());
+
+        Product product = productRepository.findByCode("P001");
+
+        assertNotNull(product);
+        assertEquals("ABCD", product.getName());
+    }
+
+    @Test
+    public void givenInvalidProduct_whenUpdate_thenReturnFail() {
+        SaveRequestDTO requestDTO = SaveRequestDTO.builder()
+                .id(1)
+                .code("123")
+                .name("ABCD")
+                .category("AB")
+                .brand("BC")
+                .description("Description")
+                .build();
+
+        try {
+            productService.updateProduct(requestDTO, requestDTO.getCode());
+        } catch (ProductException e) {
+            Assertions.assertEquals("Product does not exist", e.getMessage());
+        }
+    }
+
+    @Test
+    public void givenValidProduct_whenDelete_thenReturnSuccess() {
+        productService.deleteProduct("P003");
+
+        try {
+            productService.retrieveDetails("P003");
+        } catch (ProductException e) {
+            Assertions.assertEquals("Product does not exist", e.getMessage());
+        }
+    }
+
+    @Test
+    public void givenValidProduct_whenGetAll_thenReturnSuccess() {
+        Page<Product> productList = productService.getAllProducts(0, 10);
+
+        assertNotNull(productList);
+        assertEquals(productList.getTotalElements(), 3);
     }
 }
