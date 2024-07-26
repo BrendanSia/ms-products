@@ -48,6 +48,14 @@ public class ProductServiceIntegrationTest {
     }
 
     @Test
+    public void givenValidProduct_whenGetAll_thenReturnSuccess() {
+        Page<Product> productList = productService.getAllProducts(0, 10);
+
+        assertNotNull(productList);
+        assertEquals(productList.getTotalElements(), 4);
+    }
+
+    @Test
     public void givenProduct_whenCreate_thenReturnSuccess() {
         SaveRequestDTO requestDTO = SaveRequestDTO.builder()
                 .id(4)
@@ -130,13 +138,5 @@ public class ProductServiceIntegrationTest {
         } catch (ProductException e) {
             Assertions.assertEquals("Product does not exist", e.getMessage());
         }
-    }
-
-    @Test
-    public void givenValidProduct_whenGetAll_thenReturnSuccess() {
-        Page<Product> productList = productService.getAllProducts(0, 10);
-
-        assertNotNull(productList);
-        assertEquals(productList.getTotalElements(), 3);
     }
 }
