@@ -6,4 +6,5 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
     <include file="db/changelog/v1_0_0__create_product_table.sql"/>
+    <include file="db/changelog/v1_0_1__create_price_table.sql"/>
 </databaseChangeLog>

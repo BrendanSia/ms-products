@@ -1,5 +1,5 @@
 --liquibase formatted sql
---changeset author:your_name id:create-t_product
+--changeset author:brendan id:create-t_product
 
 CREATE TABLE t_product (
     id SERIAL PRIMARY KEY,
