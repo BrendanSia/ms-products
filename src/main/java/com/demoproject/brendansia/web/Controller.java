@@ -3,7 +3,10 @@ package com.demoproject.brendansia.web;
 import com.demoproject.brendansia.dto.ProductDTO;
 import com.demoproject.brendansia.dto.SaveRequestDTO;
 import com.demoproject.brendansia.entity.Product;
+import com.demoproject.brendansia.repository.CsvService;
+import com.demoproject.brendansia.service.CsvServiceImpl;
 import com.demoproject.brendansia.service.ProductService;
+import com.demoproject.brendansia.utils.CsvUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +14,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/products")
@@ -20,6 +28,8 @@ public class Controller {
 
     @Autowired
     private final ProductService productService;
+    @Autowired
+    private final CsvService csvService;
 
     @GetMapping(value = "/detail/{code}")
     public ResponseEntity<Object> getProductDetail(
@@ -60,5 +70,20 @@ public class Controller {
             @RequestParam(required = true) int size
     ) {
         return productService.getAllProducts(page, size);
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity <String> uploadFile(@RequestParam("file") MultipartFile[] files) {
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        for (MultipartFile file : files) {
+            futures.add(csvService.saveAsync(file));
+        }
+
+        // Wait for all files to be processed
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        csvService.processAndSave();
+
+        return ResponseEntity.ok("Files uploaded successfully");
     }
 }
