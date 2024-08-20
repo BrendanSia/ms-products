@@ -15,20 +15,25 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 @Service
 public class CsvServiceImpl implements CsvService {
     @Autowired
     ProductRepository productRepository;
     private final ConcurrentLinkedQueue<Product> productQueue = new ConcurrentLinkedQueue<>();
-    @Override
+    private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
     public void save(MultipartFile file) {
-        try {
-            List<Product> productList = CsvUtil.csvToStuList(file.getInputStream());
-            productRepository.saveAll(productList);
-        } catch (IOException ex) {
-            throw new RuntimeException("Data is not store successfully: " + ex.getMessage()); // to implement exception handling
-        }
+        executorService.submit(() -> {
+            try {
+                List<Product> productList = CsvUtil.csvToStuList(file.getInputStream());
+                productQueue.addAll(productList);
+            } catch (IOException ex) {
+                throw new RuntimeException("Data is not store successfully: " + ex.getMessage());
+            }
+        });
     }
 
     @Async
@@ -43,11 +48,29 @@ public class CsvServiceImpl implements CsvService {
         });
     }
 
+    public void saveVirtualThread(MultipartFile file) {
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            executor.submit(() -> {
+                try {
+                    List<Product> productList = CsvUtil.csvToStuList(file.getInputStream());
+                    productQueue.addAll(productList);
+                } catch (IOException ex) {
+                    throw new RuntimeException("Data is not store successfully: " + ex.getMessage());  // to implement exception handling
+                }
+            });
+        }
+    }
+
+    // virtual thread
     public void processAndSave() {
-        List<Product> sortedProducts = new ArrayList<>(productQueue);
-        productQueue.clear();
-        sortedProducts.sort(Comparator.comparing(Product::getId));
-        productRepository.saveAll(sortedProducts);
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            executor.submit(() -> {
+                List<Product> sortedProducts = new ArrayList<>(productQueue);
+                productQueue.clear();
+                sortedProducts.sort(Comparator.comparing(Product::getId));
+                productRepository.saveAll(sortedProducts);
+            });
+        }
     }
 
     @Override

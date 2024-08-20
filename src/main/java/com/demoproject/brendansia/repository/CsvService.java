@@ -10,6 +10,7 @@ public interface CsvService {
 
     void save(MultipartFile file);
     CompletableFuture<Void> saveAsync(MultipartFile file);
+    void saveVirtualThread(MultipartFile file);
     void processAndSave();
     List<Product> findAll();
 }

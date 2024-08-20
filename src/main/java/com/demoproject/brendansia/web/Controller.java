@@ -72,8 +72,8 @@ public class Controller {
         return productService.getAllProducts(page, size);
     }
 
-    @PostMapping("/upload")
-    public ResponseEntity <String> uploadFile(@RequestParam("file") MultipartFile[] files) {
+    @PostMapping("/async/upload")
+    public ResponseEntity <String> csvAsyncProcessing(@RequestParam("file") MultipartFile[] files) {
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (MultipartFile file : files) {
             futures.add(csvService.saveAsync(file));
@@ -81,6 +81,17 @@ public class Controller {
 
         // Wait for all files to be processed
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        csvService.processAndSave();
+
+        return ResponseEntity.ok("Files uploaded successfully");
+    }
+
+    @PostMapping("/virtual-thread/upload")
+    public ResponseEntity<String> csvVirtualThreadProcessing(@RequestParam("file") MultipartFile[] files) {
+        for (MultipartFile file : files) {
+            csvService.saveVirtualThread(file);
+        }
 
         csvService.processAndSave();
 
