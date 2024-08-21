@@ -20,7 +20,7 @@ public class CsvUtil {
         return TYPE.equals(file.getContentType());
     }
 
-    public static List<Product> csvToStuList(InputStream is) {
+    public static List<Product> csvToList(InputStream is) {
         try (BufferedReader bReader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
              CSVParser csvParser = new CSVParser(bReader,
                      CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());) {

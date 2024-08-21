@@ -15,32 +15,19 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Logger;
 
 @Service
 public class CsvServiceImpl implements CsvService {
     @Autowired
     ProductRepository productRepository;
     private final ConcurrentLinkedQueue<Product> productQueue = new ConcurrentLinkedQueue<>();
-    private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
-    public void save(MultipartFile file) {
-        executorService.submit(() -> {
-            try {
-                List<Product> productList = CsvUtil.csvToStuList(file.getInputStream());
-                productQueue.addAll(productList);
-            } catch (IOException ex) {
-                throw new RuntimeException("Data is not store successfully: " + ex.getMessage());
-            }
-        });
-    }
 
     @Async
     public CompletableFuture<Void> saveAsync(MultipartFile file) {
         return CompletableFuture.runAsync(() -> {
             try {
-                List<Product> productList = CsvUtil.csvToStuList(file.getInputStream());
+                List<Product> productList = CsvUtil.csvToList(file.getInputStream());
                 productQueue.addAll(productList);
             } catch (IOException ex) {
                 throw new RuntimeException("Data is not store successfully: " + ex.getMessage());  // to implement exception handling
@@ -52,7 +39,7 @@ public class CsvServiceImpl implements CsvService {
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             executor.submit(() -> {
                 try {
-                    List<Product> productList = CsvUtil.csvToStuList(file.getInputStream());
+                    List<Product> productList = CsvUtil.csvToList(file.getInputStream());
                     productQueue.addAll(productList);
                 } catch (IOException ex) {
                     throw new RuntimeException("Data is not store successfully: " + ex.getMessage());  // to implement exception handling
@@ -61,8 +48,37 @@ public class CsvServiceImpl implements CsvService {
         }
     }
 
-    // virtual thread
-    public void processAndSave() {
+    public void saveFixedThreadPool(MultipartFile file) {
+        try (var executor = Executors.newFixedThreadPool(10)) {
+            executor.submit(() -> {
+                try {
+                    List<Product> productList = CsvUtil.csvToList(file.getInputStream());
+                    productQueue.addAll(productList);
+                } catch (IOException ex) {
+                    throw new RuntimeException("Data is not stored successfully: " + ex.getMessage()); // to implement exception handling
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to process the file using fixed thread pool: " + e.getMessage(), e);
+        }
+    }
+
+    public void saveSingleThread(MultipartFile file) {
+        try (var executor = Executors.newSingleThreadExecutor()) {
+            executor.submit(() -> {
+                try {
+                    List<Product> productList = CsvUtil.csvToList(file.getInputStream());
+                    productQueue.addAll(productList);
+                } catch (IOException ex) {
+                    throw new RuntimeException("Data is not stored successfully: " + ex.getMessage()); // to implement exception handling
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to process the file using single thread executor: " + e.getMessage(), e);
+        }
+    }
+
+    public void processAndSaveVirtualThread() {
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             executor.submit(() -> {
                 List<Product> sortedProducts = new ArrayList<>(productQueue);
@@ -70,6 +86,32 @@ public class CsvServiceImpl implements CsvService {
                 sortedProducts.sort(Comparator.comparing(Product::getId));
                 productRepository.saveAll(sortedProducts);
             });
+        }
+    }
+
+    public void processAndSaveFixedThreadPool() {
+        try (var executor = Executors.newFixedThreadPool(10)) { // Same pool size as above
+            executor.submit(() -> {
+                List<Product> sortedProducts = new ArrayList<>(productQueue);
+                productQueue.clear();
+                sortedProducts.sort(Comparator.comparing(Product::getId));
+                productRepository.saveAll(sortedProducts);
+            });
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to process and save products using fixed thread pool: " + e.getMessage(), e);
+        }
+    }
+
+    public void processAndSaveSingleThread() {
+        try (var executor = Executors.newSingleThreadExecutor()) {
+            executor.submit(() -> {
+                List<Product> sortedProducts = new ArrayList<>(productQueue);
+                productQueue.clear();
+                sortedProducts.sort(Comparator.comparing(Product::getId));
+                productRepository.saveAll(sortedProducts);
+            });
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to process and save products using single thread executor: " + e.getMessage(), e);
         }
     }
 

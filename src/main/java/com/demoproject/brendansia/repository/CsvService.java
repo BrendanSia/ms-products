@@ -7,10 +7,13 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface CsvService {
-
-    void save(MultipartFile file);
     CompletableFuture<Void> saveAsync(MultipartFile file);
     void saveVirtualThread(MultipartFile file);
-    void processAndSave();
+    void saveFixedThreadPool(MultipartFile file);
+    void saveSingleThread(MultipartFile file);
+    void processAndSaveVirtualThread();
+    void processAndSaveFixedThreadPool();
+    void processAndSaveSingleThread();
+
     List<Product> findAll();
 }

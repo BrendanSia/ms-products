@@ -4,9 +4,7 @@ import com.demoproject.brendansia.dto.ProductDTO;
 import com.demoproject.brendansia.dto.SaveRequestDTO;
 import com.demoproject.brendansia.entity.Product;
 import com.demoproject.brendansia.repository.CsvService;
-import com.demoproject.brendansia.service.CsvServiceImpl;
 import com.demoproject.brendansia.service.ProductService;
-import com.demoproject.brendansia.utils.CsvUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +80,7 @@ public class Controller {
         // Wait for all files to be processed
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-        csvService.processAndSave();
+        csvService.processAndSaveVirtualThread();
 
         return ResponseEntity.ok("Files uploaded successfully");
     }
@@ -93,8 +91,30 @@ public class Controller {
             csvService.saveVirtualThread(file);
         }
 
-        csvService.processAndSave();
+        csvService.processAndSaveVirtualThread();
 
-        return ResponseEntity.ok("Files uploaded successfully");
+        return ResponseEntity.ok("Files uploaded successfully (Virtual Thread)");
+    }
+
+    @PostMapping("/fixed-thread/upload")
+    public ResponseEntity<String> csvVFixedThreadProcessing(@RequestParam("file") MultipartFile[] files) {
+        for (MultipartFile file : files) {
+            csvService.saveFixedThreadPool(file);
+        }
+
+        csvService.processAndSaveFixedThreadPool();
+
+        return ResponseEntity.ok("Files uploaded successfully (Fixed Thread)");
+    }
+
+    @PostMapping("/single-thread/upload")
+    public ResponseEntity<String> csvVirtualSingleProcessing(@RequestParam("file") MultipartFile[] files) {
+        for (MultipartFile file : files) {
+            csvService.saveSingleThread(file);
+        }
+
+        csvService.processAndSaveSingleThread();
+
+        return ResponseEntity.ok("Files uploaded successfully (Single Thread)");
     }
 }
