@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Service
@@ -22,6 +23,8 @@ public class CsvServiceImpl implements CsvService {
     @Autowired
     ProductRepository productRepository;
     private final ConcurrentLinkedQueue<Product> productQueue = new ConcurrentLinkedQueue<>();
+    private final ExecutorService fixedExecutor = Executors.newFixedThreadPool(10);
+    private final ExecutorService singleExecutor = Executors.newSingleThreadExecutor();
 
     @Async
     public CompletableFuture<Void> saveAsync(MultipartFile file) {
@@ -36,8 +39,8 @@ public class CsvServiceImpl implements CsvService {
     }
 
     public void saveVirtualThread(MultipartFile file) {
-        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            executor.submit(() -> {
+        try (ExecutorService virtual = Executors.newVirtualThreadPerTaskExecutor()) {
+            virtual.submit(() -> {
                 try {
                     List<Product> productList = CsvUtil.csvToList(file.getInputStream());
                     productQueue.addAll(productList);
@@ -45,6 +48,7 @@ public class CsvServiceImpl implements CsvService {
                     throw new RuntimeException("Data is not store successfully: " + ex.getMessage());  // to implement exception handling
                 }
             });
+            virtual.shutdown();
         }
     }
 
@@ -64,8 +68,7 @@ public class CsvServiceImpl implements CsvService {
     }
 
     public void saveSingleThread(MultipartFile file) {
-        try (var executor = Executors.newSingleThreadExecutor()) {
-            executor.submit(() -> {
+        singleExecutor.submit(() -> {
                 try {
                     List<Product> productList = CsvUtil.csvToList(file.getInputStream());
                     productQueue.addAll(productList);
@@ -73,9 +76,6 @@ public class CsvServiceImpl implements CsvService {
                     throw new RuntimeException("Data is not stored successfully: " + ex.getMessage()); // to implement exception handling
                 }
             });
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to process the file using single thread executor: " + e.getMessage(), e);
-        }
     }
 
     public void processAndSaveVirtualThread() {
