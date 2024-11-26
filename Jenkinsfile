@@ -6,6 +6,9 @@ pipeline {
         DOCKER_REGISTRY = 'docker.io'
         DOCKER_USERNAME = 'brendansiach@gmail.com'
         DOCKER_PASSWORD = 'Bren@1130'
+        KUBE_CONTEXT = 'docker-desktop'  // Kubernetes context
+        KUBE_NAMESPACE = 'default'
+        POD_NAME = 'ms-products-pod'
     }
     stages {
         stage('Build & Install') {
@@ -37,13 +40,26 @@ pipeline {
                 }
             }
         }
-        stage('Docker Build & Deploy') {
+        stage('Docker Build') {
             steps {
                 script {
                     logfile = 'pipeline.log'
                     try {
+                        // Build Docker image
                         sh "docker build -t ${IMAGE_NAME}:${IMAGE_VERSION} . >> ${logfile} 2>&1"
-
+                    } catch (Exception e) {
+                        writeFile file: "${logfile}", text: "Failed in Docker Build stage: ${e.toString()}\n", append: true
+                        currentBuild.result = 'FAILURE'
+                    }
+                }
+            }
+        }
+        stage('Docker Push') {
+            steps {
+                script {
+                    logfile = 'pipeline.log'
+                    try {
+                        // Login to Docker registry
                         sh """
                             echo "$DOCKER_PASSWORD" | docker login ${DOCKER_REGISTRY} -u "$DOCKER_USERNAME" --password-stdin >> ${logfile} 2>&1
                         """
@@ -53,17 +69,41 @@ pipeline {
                             docker tag ${IMAGE_NAME}:${IMAGE_VERSION} ${DOCKER_REGISTRY}/${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_VERSION} >> ${logfile} 2>&1
                             docker push ${DOCKER_REGISTRY}/${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_VERSION} >> ${logfile} 2>&1
                         """
-
-                        // checks and removes existing containers
+                    } catch (Exception e) {
+                        writeFile file: "${logfile}", text: "Failed in Docker Push stage: ${e.toString()}\n", append: true
+                        currentBuild.result = 'FAILURE'
+                    }
+                }
+            }
+        }
+        stage('Kubernetes Deployment') {
+            steps {
+                script {
+                    logfile = 'pipeline.log'
+                    try {
+                        // Ensure kubectl is configured to use the correct Kubernetes context
                         sh """
-                            docker ps -a --filter "name=${CONTAINER_NAME}" --format "{{.Names}}" | grep -q ${CONTAINER_NAME} && docker rm -f ${CONTAINER_NAME} || true
+                            kubectl config use-context ${KUBE_CONTEXT}
                         """
 
+                        // Check if the pod already exists
+                        def podExists = sh(script: "kubectl get pod ${POD_NAME} -n ${KUBE_NAMESPACE} --ignore-not-found=true", returnStatus: true) == 0
+
+                        // If the pod exists, delete it
+                        if (podExists) {
+                            sh "kubectl delete pod ${POD_NAME} -n ${KUBE_NAMESPACE}"
+                        }
+
+                        // Deploy the new pod or update the deployment
                         sh """
-                             docker run -d --name ${CONTAINER_NAME} --restart=always -p 8081:8081 ${DOCKER_REGISTRY}/${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_VERSION} >> ${logfile} 2>&1
+                            kubectl run ${POD_NAME} --image=${DOCKER_REGISTRY}/${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_VERSION} \
+                            --restart=Always \
+                            --port=8081 \
+                            -n ${KUBE_NAMESPACE} \
+                            --dry-run=client -o yaml | kubectl apply -f -
                         """
                     } catch (Exception e) {
-                        writeFile file: "${logfile}", text: "Failed in Docker Build and Deploy stage: ${e.toString()}\n", append: true
+                        writeFile file: "${logfile}", text: "Failed in Kubernetes Deployment stage: ${e.toString()}\n", append: true
                         currentBuild.result = 'FAILURE'
                     }
                 }
