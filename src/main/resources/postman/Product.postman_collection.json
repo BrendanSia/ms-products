@@ -1,0 +1,250 @@
+{
+	"info": {
+		"_postman_id": "04eee82e-129b-46bc-b81c-b4596c0bf0fa",
+		"name": "Product",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31032226"
+	},
+	"item": [
+		{
+			"name": "detail",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8081/api/products/detail/PROD001",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"products",
+						"detail",
+						"PROD001"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "listing",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/api/products/list?page=0&size=10",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"products",
+						"list"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "0"
+						},
+						{
+							"key": "size",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "save",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"iPhone 15\",\r\n    \"category\":\"Smartphone\",\r\n    \"brand\":\"Apple\",\r\n    \"type\":\"Technology\",\r\n    \"description\":\"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/api/products/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"products",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\": 9,\r\n    \"code\":\"P009\",\r\n    \"name\":\"iPhone 15\",\r\n    \"category\":\"Smartphone\",\r\n    \"brand\":\"Apple\",\r\n    \"type\":\"Technology\",\r\n    \"description\":\"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/products/process/P009",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"products",
+						"process",
+						"P009"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CSV File - Virtual Thread",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": [
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence.csv",
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence-2.csv",
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence-3.csv",
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence-4.csv",
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence-5.csv"
+							]
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8081/api/products/virtual-thread/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"products",
+						"virtual-thread",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CSV File - Fixed Thread",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": [
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence.csv",
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence-2.csv",
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence-3.csv",
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence-4.csv",
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence-5.csv"
+							]
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8081/api/products/fixed-thread/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"products",
+						"fixed-thread",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CSV File - Single Thread",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": [
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence.csv",
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence-2.csv",
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence-3.csv",
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence-4.csv",
+								"/C:/Users/SiaCheongHuiBrendanN/Desktop/python scripts/product_sequence-5.csv"
+							]
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8081/api/products/single-thread/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"products",
+						"single-thread",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
