@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-product-deployment
+spec:
+  replicas: 1  # Number of instances of your app to run
+  selector:
+    matchLabels:
+      app: my-product-app
+  template:
+    metadata:
+      labels:
+        app: my-product-app
+    spec:
+      containers:
+        - name: my-product-container
+          image: ms-products:1.0
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "deploy"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://host.docker.internal:5432/my_product"  # Adjust DB connection string
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "postgres"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "postgres"
