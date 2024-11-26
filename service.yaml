@@ -4,9 +4,9 @@ metadata:
   name: my-product-service
 spec:
   selector:
-    app: my-product-app  # This should match the label in your deployment.yaml
+    app: my-product-app
   ports:
     - protocol: TCP
       port: 8081
-      targetPort: 8081   # The port on the container that the app listens to
+      targetPort: 8081    # container port
   type: NodePort          # Exposes the service externally via a static port on each node
